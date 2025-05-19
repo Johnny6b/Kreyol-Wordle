@@ -1,5 +1,4 @@
-import {realDictionary } from './dictionary.js';
-
+import { realDictionary } from './dictionary.js';
 
 // Use `const` for constants and `let` for variables that change
 const dictionary = realDictionary;
@@ -28,11 +27,10 @@ function drawGrid(container) {
   container.appendChild(grid);
 }
 
-
 // Function to update grid based on the state
 function updateGrid() {
   state.grid.forEach((row, i) => {
-  row.forEach((letter, j) => {
+    row.forEach((letter, j) => {
       const box = document.getElementById(`box${i}${j}`);
       if (box) box.textContent = letter;
     });
@@ -58,7 +56,6 @@ function registerKeyboardEvents() {
       handleEnterKey();
     } else if (key === 'Backspace') {
       removeLetter();
-      localStorage.clear();
     } else if (isLetter(key)) {
       addLetter(key);
     }
@@ -72,10 +69,15 @@ function handleEnterKey() {
   if (state.currentCol === 5) {
     const word = getCurrentWord();
     if (isWordValid(word)) {
-      if(localStorage.getItem('inputs'))
-        localStorage.setItem('inputs', localStorage.getItem('inputs') + " " + word);
-      else 
-        localStorage.setItem('inputs', word );
+      try {
+        if(localStorage.getItem('inputs'))
+          localStorage.setItem('inputs', localStorage.getItem('inputs') + " " + word);
+        else 
+          localStorage.setItem('inputs', word);
+      } catch (e) {
+        console.error("Local storage error:", e);
+      }
+      
       revealWord(word);
       state.currentRow++;
       state.currentCol = 0;
@@ -97,7 +99,7 @@ function isWordValid(word) {
 
 // Handles adding a letter to the grid
 function addLetter(letter) {
-  if (state.currentCol < 5) {
+  if (state.currentCol < 5 && state.currentRow < 6) {
     state.grid[state.currentRow][state.currentCol] = letter;
     state.currentCol++;
   }
@@ -113,7 +115,7 @@ function removeLetter() {
 
 // Check if a key is a valid letter
 function isLetter(key) {
-  return key.length === 1 && key.match(/[a-z]/i);
+  return key.length === 1 && key.match(/[a-zèò]/i);
 }
 
 // Reveal the word after a guess and animate the result
@@ -131,31 +133,37 @@ function revealWord(guess) {
 
     const letterPosition = getPositionOfOccurrence(guess, letter, i);
     
-    if (letter === state.secret[i]) 
-    {
-      if(localStorage.getItem('coloring'))
-        localStorage.setItem('coloring', 
-          localStorage.getItem('coloring') + '0');
-      else
-        localStorage.setItem('coloring', '0');
+    if (letter === state.secret[i]) {
+      try {
+        if(localStorage.getItem('coloring'))
+          localStorage.setItem('coloring', localStorage.getItem('coloring') + '0');
+        else
+          localStorage.setItem('coloring', '0');
+      } catch (e) {
+        console.error("Local storage error:", e);
+      }
       c[row][i] = 0;//green
     }
-    else if (state.secret.includes(letter)) 
-    {
-      if(localStorage.getItem('coloring'))
-        localStorage.setItem('coloring', 
-          localStorage.getItem('coloring') + '1');
-      else
-        localStorage.setItem('coloring', '1');
+    else if (state.secret.includes(letter)) {
+      try {
+        if(localStorage.getItem('coloring'))
+          localStorage.setItem('coloring', localStorage.getItem('coloring') + '1');
+        else
+          localStorage.setItem('coloring', '1');
+      } catch (e) {
+        console.error("Local storage error:", e);
+      }
       c[row][i] = 1;//yellow 
     }
-    else 
-    {
-      if(localStorage.getItem('coloring'))
-        localStorage.setItem('coloring', 
-          localStorage.getItem('coloring') + '2');
-      else
-        localStorage.setItem('coloring', '2');
+    else {
+      try {
+        if(localStorage.getItem('coloring'))
+          localStorage.setItem('coloring', localStorage.getItem('coloring') + '2');
+        else
+          localStorage.setItem('coloring', '2');
+      } catch (e) {
+        console.error("Local storage error:", e);
+      }
       c[row][i] = 2;//gray 
     }
     
@@ -169,19 +177,22 @@ function revealWord(guess) {
         box.classList.add('empty');
       }
     }, (i + 1) * animationDuration / 2);
-    //alert("${state.colors[state.currentRow][i]}");
+    
     box.classList.add('animated');
     box.style.animationDelay = `${i * animationDuration / 2}ms`;
   });
   
-  localStorage.setItem('coloring', localStorage.getItem('coloring') + " ");
+  try {
+    localStorage.setItem('coloring', localStorage.getItem('coloring') + " ");
+  } catch (e) {
+    console.error("Local storage error:", e);
+  }
 
   const isWinner = state.secret === guess;
   const isGameOver = state.currentRow === 5;
 
   setTimeout(() => {
     if (isWinner) {
-
       openPopup();
     } else if (isGameOver) {
       alert(`Better luck next time! The word was ${state.secret}.`);
@@ -192,44 +203,52 @@ function revealWord(guess) {
 }
 
 function updateKeyboard(){
-  
   const a = state.colors;//color values
   const row = state.currentRow;//row number 
 
-  for(let i = 0; i < a[row].length; i++)
-  {
+  for(let i = 0; i < a[row].length; i++) {
     let letter = state.grid[row][i].toUpperCase();//letter in word 
+    if (!letter) continue; // Skip empty cells
 
     //letter color value (ex. 0 - green, 1 - yellow, 2 - gray)
     let color = state.colors[row][i];
 
     //button that corresponds to letter 
     const key = document.querySelector(`button[data-key="${letter}"]`);
+    if (!key) continue; // Skip if key not found
   
     if(color === 0){
       if(key.classList.contains('btn1'))
         key.classList.remove('btn1');
       else if(key.classList.contains('btn'))
         key.classList.remove('btn');
+      if(key.classList.contains('btn2'))
+        key.classList.remove('btn2');
 
       key.classList.add('btn0'); 
     }
     else if(color === 1){
-      key.classList.add('btn1'); 
+      if(!key.classList.contains('btn0')) { // Only add if not green already
+        if(key.classList.contains('btn'))
+          key.classList.remove('btn');
+        if(key.classList.contains('btn2'))
+          key.classList.remove('btn2');
+        key.classList.add('btn1');
+      }
     }
-    else{
-      key.classList.remove('btn');
-      key.classList.add('btn2'); 
+    else {
+      if(!key.classList.contains('btn0') && !key.classList.contains('btn1')) { // Only add if not colored already
+        key.classList.remove('btn');
+        key.classList.add('btn2'); 
+      }
     }
   }
-  
 }
 
 // Utility functions to count occurrences
 function getNumOfOccurrencesInWord(word, letter) {
   return word.split('').filter((char) => char === letter).length;
 }
-
 
 function getPositionOfOccurrence(word, letter, position) {
   let count = 0;
@@ -244,92 +263,111 @@ function getPositionOfOccurrence(word, letter, position) {
 //winner popup
 const winner = document.getElementById("winner-popup");
 function openPopup(){
-  document.getElementById("tries").innerHTML = "" + state.currentRow;
+  document.getElementById("tries").innerHTML = "" + (state.currentRow + 1);
   winner.classList.add("open-popup");
 }
-
-const closewin = document.querySelector('.closing');
-closewin.addEventListener('click', () => {
-  winner.classList.remove("open-popup");
-  winner.classList.add("closing-popup");
-})
-
 
 // Initialize the game
 function startup() {
   const game = document.getElementById('game');
   drawGrid(game);
   registerKeyboardEvents();
-  window.alert(state.secret);
-  defaultGrid();
-  reColor();
-}
-
-function defaultGrid()
-{
-  const words = localStorage.getItem('inputs').split(" ");
-
-  for(let i = 0; i < words.length; i++)
-  {
-    const letters = words[i].split("");
-    for(let j = 0; j < letters.length; j++)
-    {
-      state.grid[i][j] = letters[j];
+  
+  // For debugging - comment out in production
+  console.log("Secret word:", state.secret);
+  // window.alert(state.secret); // Comment this out in production
+  
+  try {
+    if (localStorage.getItem('inputs')) {
+      defaultGrid();
+      reColor();
     }
+  } catch (e) {
+    console.error("Local storage error:", e);
   }
-  state.currentRow = words.length;
-  updateGrid();
 }
 
-function reColor()
-{
-  const rcolors = localStorage.getItem('coloring').split(" ");
-
-  for(let i = 0; i < rcolors.length; i++)
-  {
-    const lcolors = rcolors[i].split("");
-
-    for(let j = 0; j < lcolors.length; j++)
-    {
-      const box = document.getElementById(`box${i}${j}`);
-      if (lcolors[j] === '0') {
-        box.classList.add('right');
-      } else if (lcolors[j] === '1') {
-        box.classList.add('wrong');
-     
-      } else {
-        box.classList.add('empty');
+function defaultGrid() {
+  try {
+    const inputs = localStorage.getItem('inputs');
+    if (!inputs) return;
+    
+    const words = inputs.split(" ");
+    
+    for(let i = 0; i < words.length; i++) {
+      const letters = words[i].split("");
+      for(let j = 0; j < letters.length; j++) {
+        state.grid[i][j] = letters[j];
       }
     }
+    state.currentRow = words.length;
+    updateGrid();
+  } catch (e) {
+    console.error("Error loading saved game:", e);
   }
 }
 
-//handles the keyboard buttons - letters
-const buttons = document.querySelectorAll('.btn');
-buttons.forEach(btn => {
+function reColor() {
+  try {
+    const coloring = localStorage.getItem('coloring');
+    if (!coloring) return;
+    
+    const rcolors = coloring.split(" ");
 
-  btn.addEventListener('click', () => {
-   var guy = "" + btn.innerHTML;
-   addLetter(guy.toLowerCase());
-   updateGrid();
+    for(let i = 0; i < rcolors.length; i++) {
+      if (!rcolors[i]) continue;
+      
+      const lcolors = rcolors[i].split("");
 
-  })
+      for(let j = 0; j < lcolors.length; j++) {
+        const box = document.getElementById(`box${i}${j}`);
+        if (!box) continue;
+        
+        if (lcolors[j] === '0') {
+          box.classList.add('right');
+        } else if (lcolors[j] === '1') {
+          box.classList.add('wrong');
+        } else {
+          box.classList.add('empty');
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error recoloring saved game:", e);
+  }
+}
+
+// Event setup for keyboard
+document.addEventListener('DOMContentLoaded', function() {
+  //handles the keyboard buttons - letters
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      var guy = "" + btn.innerHTML;
+      addLetter(guy.toLowerCase());
+      updateGrid();
+    });
+  });
+
+  //handles the keyboard buttons - Enter button
+  const enter = document.querySelector('.Enter');
+  if (enter) {
+    enter.addEventListener('click', () => {
+      handleEnterKey();
+      updateGrid();
+    });
+  }
+
+  //handles the keyboard buttons - delete button
+  const Delete = document.querySelector('.delete');
+  if (Delete) {
+    Delete.addEventListener('click', () => {
+      removeLetter();
+      updateGrid();
+    });
+  }
+
+  // Launch the game
+  startup();
 });
-
-//handles the keyboard buttons - Enter button
-const enter = document.querySelector('.Enter');
-enter.addEventListener('click', () => {
- handleEnterKey();
- updateGrid();
-});
-
-//handles the keyboard buttons - delete button
-const Delete = document.querySelector('.delete');
-Delete.addEventListener('click', () => {
- removeLetter();
- updateGrid();
-})
-
-startup();
-
 
