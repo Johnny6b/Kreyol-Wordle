@@ -1,0 +1,390 @@
+
+:root {
+  --default-bg: #488cf4;
+  --empty-bg: #8e8e8e;
+  --wrong-bg: #ebc729;/*wrong place*/
+  --right-bg: #69ba61;/*right place*/
+  --box-size: 57px; /* Box size as a variable for easier adjustments */
+}
+
+html, body {
+  /*background: linear-gradient(0.25turn, red, blue);*/
+  height: 100%;
+  overflow-y: hidden;
+  background-image: url("/images/haiti-flag.png"); 
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+ 
+  /*background: linear-gradient(0deg, #f1072e 50%, #001eff 50%);*/
+  margin: 0;
+  padding: 0;
+  /*font-family: 'Arial', sans-serif;*/
+}
+
+
+#game {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  margin-top: 2rem;
+  width: 100%;
+  height: 63vh;
+}
+
+.winner-popup{
+  width: 400px;
+  background: white;
+  border-radius: 10px;
+  position: absolute;
+  top: 0;
+  font-size: 1.3rem;
+  place-items: center;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.1);
+  padding: 0 60px 60px;
+  color: #333;
+  visibility: hidden;
+  transition: transform 0.4s, top 0.4s;
+}
+
+.winner-popup h2{
+  text-align: center;
+  font-size: 38px;
+  font-weight: 500;
+  margin: 30px 0 10px
+}
+
+.winner-popup p{
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, var(--box-size)); /* Use variable for size */
+  grid-template-rows: repeat(6, var(--box-size));
+  gap: 8px;
+}
+
+.box {
+  width: var(--box-size);
+  height: var(--box-size);
+  /*background-color: var(--empty-bg);
+  border: 2px solid var(--empty-bg);*/
+  display: grid;
+  place-items: center;
+  color: black;
+  text-transform: uppercase;
+  font-size: 2.4rem;
+  font-family: 'Arial', sans-serif;
+  transition: background-color 0.3s ease;
+  border-radius: 5px;
+  background-color: rgba(238, 202, 202, 0.952);
+  /*background-color: #b8b4ec;
+  opacity: .7;*/
+
+}
+
+.bempty{
+  background-color: var(--empty-bg);
+}
+
+.box.empty {
+  background: var(--empty-bg);
+}
+
+.box.wrong {
+  background: var(--wrong-bg);
+}
+
+.box.right {
+  background: var(--right-bg);
+}
+
+.animated {
+  animation: flip 0.5s ease-in-out;
+}
+
+@keyframes flip {
+  0% { transform: scaleY(1); }
+  50% { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+
+.title {
+  color: white;
+  text-align: center;
+  font-family: "Bebas Neue", sans-serif;
+  /*font-size: 2rem;
+  font-weight: 900;*/
+  font-size: 1.7rem;
+}
+
+.popup .t1{
+  text-align: center;
+}
+
+/*
+.text-area {
+	padding: 5px;
+	width: calc(100vw - 30px);
+	height: calc(100vh - 295px);
+}*/
+
+.keyboard{
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  gap: 0.25em;
+  top: 0px;
+}
+
+.keyboard .row{
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.Enter{
+  font-weight: bold;
+  border-color: black;
+  background-color: rgba(238, 202, 202, 0.952);
+  display: inline-block;
+  padding: .4rem 1rem;
+  margin: 0rem;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  height: 60px;
+  width: 90px;
+}
+
+.delete{
+  font-weight: bold;
+  border-color: black;
+  background-color: rgba(238, 202, 202, 0.952);
+  display: inline-block;
+  padding: .4rem 1rem;
+  margin: .1rem;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  height: 60px;
+  width: 90px;
+}
+
+.btn{
+  font-weight: bold;
+  border-color: black;
+  background-color: rgba(238, 202, 202, 0.952);
+  display: inline-block;
+  margin: 0rem;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  height: 60px;
+  width: 50px;
+}
+
+/* Color green key */
+.btn0{
+  font-weight: bold;
+  border-color: black;
+  background-color: var(--right-bg);
+  display: inline-block;
+  margin: 0rem;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  height: 60px;
+  width: 50px;
+}
+
+/* Color yellow key */
+.btn1{
+  font-weight: bold;
+  border-color: black;
+  background-color: var(--wrong-bg);
+  display: inline-block;
+  margin: 0rem;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  height: 60px;
+  width: 50px;
+}
+
+/* Color gray key */
+.btn2{
+  font-weight: bold;
+  border-color: black;
+  background-color: var(--empty-bg);
+  display: inline-block;
+  margin: 0rem;
+  font-size: 1.3rem;
+  border-radius: 5px;
+  height: 60px;
+  width: 50px;
+}
+
+button {
+  cursor: pointer;
+}
+
+/*
+.btn.empty{
+  background: var(--empty-bg);
+}
+
+.btn.right{
+  background: var(--right-bg);
+}
+
+.btn.wrong{
+  background: var(--wrong-bg);
+}*/
+
+.btn:focus {
+  visibility: hidden;
+}
+
+.popup-header{
+  text-align: center;
+}
+
+.popup{
+  width: 400px;
+  background: white;
+  border-radius: 10px;
+  position: absolute;
+  top: 0;
+  font-size: 1.3rem;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.1);
+  padding: 0 60px 60px;
+  color: #333;
+  visibility: hidden;
+  transition: transform 0.4s, top 0.4s;
+}
+
+.popup h2{
+  font-size: 38px;
+  font-weight: 500;
+  margin: 30px 0 10px
+}
+
+.closing{
+  background-color: #62d857;
+  border: none;
+
+  color: black;
+  height: 50px;
+  font-size: .9rem;
+  font-weight: 500;
+  width: 105px;
+  border-radius: 50px;
+}
+
+.open-popup{
+  visibility: visible;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.closing-popup{
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.1);
+}
+
+
+.infobutton{
+  font-size: 40px;
+  background: none;
+  border: none;
+  color: white;
+  position: absolute;
+  top: 15px;
+  left: 20px
+}
+
+@media only screen and (max-width: 600px) {
+  
+  .wrapper-main{
+    width: 100%;
+  }
+
+  .title{
+    font-size: 2rem;
+  }
+
+  .delete{
+    color: black;
+    height:50px;
+    width: 50px;
+    border-radius: 0px;
+  }
+
+  .Enter{
+    text-align: justify;
+    color: black;
+    height: 50px;
+    width: 50px;
+    border-radius: 0px;
+  }
+
+  .btn{
+    padding: 0px;
+    color: black;
+    border-radius: 0px;
+    height: 50px;
+    width: 40px;
+  }
+  
+  /* Color green key */
+  .btn0{
+    padding: 0px;
+    color: black;
+    border-radius: 0px;
+    height: 50px;
+    width: 40px;
+  }
+  
+  /* Color yellow key */
+  .btn1{
+    padding: 0px;
+    color: black;
+    font-size: 1.3rem;
+    border-radius: 0px;
+    height: 50px;
+    width: 40px;
+  }
+  
+  /* Color gray key */
+  .btn2{
+    padding: 0px;
+    color: black;
+    border-radius: 0px;
+    height: 50px;
+    width: 40px;
+  }
+
+  .box {
+    width: 60px;
+    height: 60px;
+  }
+
+  .grid {
+    place-items: center;
+    gap: 27px;
+    margin: 30px;
+    grid-template-columns: repeat(5, 40px);
+    grid-template-rows: repeat(6, 40px);
+  }
+
+  .winner-popup{
+    width: 250px;
+  }
+
+  .closing{
+    margin-left: 100px;
+  }
+
+}
