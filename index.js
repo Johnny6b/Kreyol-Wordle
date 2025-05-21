@@ -56,6 +56,7 @@ function registerKeyboardEvents() {
       handleEnterKey();
     } else if (key === 'Backspace') {
       removeLetter();
+      localStorage.clear();
     } else if (isLetter(key)) {
       addLetter(key);
     }
