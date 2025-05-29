@@ -56,7 +56,7 @@ function registerKeyboardEvents() {
       handleEnterKey();
     } else if (key === 'Backspace') {
       removeLetter();
-      localStorage.clear();
+      clearLocalStorage();
     } else if (isLetter(key)) {
       addLetter(key);
     }
@@ -65,27 +65,89 @@ function registerKeyboardEvents() {
   };
 }
 
+// Safe localStorage operations
+function setLocalStorageItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.error("Local storage error:", e);
+  }
+}
+
+function getLocalStorageItem(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (e) {
+    console.error("Local storage error:", e);
+    return null;
+  }
+}
+
+function clearLocalStorage() {
+  try {
+    localStorage.clear();
+  } catch (e) {
+    console.error("Local storage error:", e);
+  }
+}
+
 // Handles the enter key logic
 function handleEnterKey() {
   if (state.currentCol === 5) {
     const word = getCurrentWord();
     if (isWordValid(word)) {
-      try {
-        if(localStorage.getItem('inputs'))
-          localStorage.setItem('inputs', localStorage.getItem('inputs') + " " + word);
-        else 
-          localStorage.setItem('inputs', word);
-      } catch (e) {
-        console.error("Local storage error:", e);
+      const currentInputs = getLocalStorageItem('inputs');
+      if (currentInputs) {
+        setLocalStorageItem('inputs', currentInputs + " " + word);
+      } else {
+        setLocalStorageItem('inputs', word);
       }
       
       revealWord(word);
       state.currentRow++;
       state.currentCol = 0;
     } else {
-      alert('Pa yon mo valab.');
+      showAlert('Pa yon mo valab.');
     }
   }
+}
+
+// Enhanced alert function for better mobile experience
+function showAlert(message) {
+  // Create a custom alert for better mobile experience
+  const alertDiv = document.createElement('div');
+  alertDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #333;
+    max-width: 80%;
+  `;
+  alertDiv.textContent = message;
+  
+  document.body.appendChild(alertDiv);
+  
+  // Remove after 2 seconds
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.parentNode.removeChild(alertDiv);
+    }
+  }, 2000);
+  
+  // Also remove on click/tap
+  alertDiv.addEventListener('click', () => {
+    if (alertDiv.parentNode) {
+      alertDiv.parentNode.removeChild(alertDiv);
+    }
+  });
 }
 
 // Retrieves the current word from the grid
@@ -127,45 +189,31 @@ function revealWord(guess) {
   state.grid[row].forEach((letter, i) => {
     const box = document.getElementById(`box${row}${i}`);
     
-    //number of times the inputted letter is in the answer
-    const numOfOccurrencesSecret = getNumOfOccurrencesInWord(state.secret, letter);
-    //number of times they have the inputted letter in their guess
-    const numOfOccurrencesGuess = getNumOfOccurrencesInWord(guess, letter);
-
-    const letterPosition = getPositionOfOccurrence(guess, letter, i);
-    
+    // Determine color for each letter
     if (letter === state.secret[i]) {
-      try {
-        if(localStorage.getItem('coloring'))
-          localStorage.setItem('coloring', localStorage.getItem('coloring') + '0');
-        else
-          localStorage.setItem('coloring', '0');
-      } catch (e) {
-        console.error("Local storage error:", e);
+      const currentColoring = getLocalStorageItem('coloring');
+      if (currentColoring) {
+        setLocalStorageItem('coloring', currentColoring + '0');
+      } else {
+        setLocalStorageItem('coloring', '0');
       }
-      c[row][i] = 0;//green
-    }
-    else if (state.secret.includes(letter)) {
-      try {
-        if(localStorage.getItem('coloring'))
-          localStorage.setItem('coloring', localStorage.getItem('coloring') + '1');
-        else
-          localStorage.setItem('coloring', '1');
-      } catch (e) {
-        console.error("Local storage error:", e);
+      c[row][i] = 0; // green
+    } else if (state.secret.includes(letter)) {
+      const currentColoring = getLocalStorageItem('coloring');
+      if (currentColoring) {
+        setLocalStorageItem('coloring', currentColoring + '1');
+      } else {
+        setLocalStorageItem('coloring', '1');
       }
-      c[row][i] = 1;//yellow 
-    }
-    else {
-      try {
-        if(localStorage.getItem('coloring'))
-          localStorage.setItem('coloring', localStorage.getItem('coloring') + '2');
-        else
-          localStorage.setItem('coloring', '2');
-      } catch (e) {
-        console.error("Local storage error:", e);
+      c[row][i] = 1; // yellow 
+    } else {
+      const currentColoring = getLocalStorageItem('coloring');
+      if (currentColoring) {
+        setLocalStorageItem('coloring', currentColoring + '2');
+      } else {
+        setLocalStorageItem('coloring', '2');
       }
-      c[row][i] = 2;//gray 
+      c[row][i] = 2; // gray 
     }
     
     setTimeout(() => {
@@ -173,7 +221,6 @@ function revealWord(guess) {
         box.classList.add('right');
       } else if (state.secret.includes(letter)) {
         box.classList.add('wrong');
-     
       } else {
         box.classList.add('empty');
       }
@@ -183,10 +230,9 @@ function revealWord(guess) {
     box.style.animationDelay = `${i * animationDuration / 2}ms`;
   });
   
-  try {
-    localStorage.setItem('coloring', localStorage.getItem('coloring') + " ");
-  } catch (e) {
-    console.error("Local storage error:", e);
+  const currentColoring = getLocalStorageItem('coloring');
+  if (currentColoring) {
+    setLocalStorageItem('coloring', currentColoring + " ");
   }
 
   const isWinner = state.secret === guess;
@@ -194,51 +240,41 @@ function revealWord(guess) {
 
   setTimeout(() => {
     if (isWinner) {
-      openPopup();
+      openWinnerPopup();
     } else if (isGameOver) {
-      alert(`Better luck next time! The word was ${state.secret}.`);
+      showAlert(`Better luck next time! The word was ${state.secret}.`);
     }
   }, 3 * animationDuration);
 
   updateKeyboard();
 }
 
-function updateKeyboard(){
-  const a = state.colors;//color values
-  const row = state.currentRow;//row number 
+function updateKeyboard() {
+  const a = state.colors; // color values
+  const row = state.currentRow; // row number 
 
-  for(let i = 0; i < a[row].length; i++) {
-    let letter = state.grid[row][i].toUpperCase();//letter in word 
+  for (let i = 0; i < a[row].length; i++) {
+    let letter = state.grid[row][i].toUpperCase(); // letter in word 
     if (!letter) continue; // Skip empty cells
 
-    //letter color value (ex. 0 - green, 1 - yellow, 2 - gray)
+    // letter color value (ex. 0 - green, 1 - yellow, 2 - gray)
     let color = state.colors[row][i];
 
-    //button that corresponds to letter 
+    // button that corresponds to letter 
     const key = document.querySelector(`button[data-key="${letter}"]`);
     if (!key) continue; // Skip if key not found
   
-    if(color === 0){
-      if(key.classList.contains('btn1'))
-        key.classList.remove('btn1');
-      else if(key.classList.contains('btn'))
-        key.classList.remove('btn');
-      if(key.classList.contains('btn2'))
-        key.classList.remove('btn2');
-
+    if (color === 0) {
+      // Remove other classes and add green
+      key.classList.remove('btn', 'btn1', 'btn2');
       key.classList.add('btn0'); 
-    }
-    else if(color === 1){
-      if(!key.classList.contains('btn0')) { // Only add if not green already
-        if(key.classList.contains('btn'))
-          key.classList.remove('btn');
-        if(key.classList.contains('btn2'))
-          key.classList.remove('btn2');
+    } else if (color === 1) {
+      if (!key.classList.contains('btn0')) { // Only add if not green already
+        key.classList.remove('btn', 'btn2');
         key.classList.add('btn1');
       }
-    }
-    else {
-      if(!key.classList.contains('btn0') && !key.classList.contains('btn1')) { // Only add if not colored already
+    } else {
+      if (!key.classList.contains('btn0') && !key.classList.contains('btn1')) { // Only add if not colored already
         key.classList.remove('btn');
         key.classList.add('btn2'); 
       }
@@ -261,9 +297,9 @@ function getPositionOfOccurrence(word, letter, position) {
   return count;
 }
 
-//winner popup
+// Winner popup
 const winner = document.getElementById("winner-popup");
-function openPopup(){
+function openWinnerPopup() {
   document.getElementById("tries").innerHTML = "" + (state.currentRow + 1);
   winner.classList.add("open-popup");
 }
@@ -278,97 +314,17 @@ function startup() {
   console.log("Secret word:", state.secret);
   // window.alert(state.secret); // Comment this out in production
   
-  try {
-    if (localStorage.getItem('inputs')) {
-      defaultGrid();
-      reColor();
-    }
-  } catch (e) {
-    console.error("Local storage error:", e);
+  const savedInputs = getLocalStorageItem('inputs');
+  if (savedInputs) {
+    defaultGrid();
+    reColor();
   }
 }
 
 function defaultGrid() {
-  try {
-    const inputs = localStorage.getItem('inputs');
-    if (!inputs) return;
-    
-    const words = inputs.split(" ");
-    
-    for(let i = 0; i < words.length; i++) {
-      const letters = words[i].split("");
-      for(let j = 0; j < letters.length; j++) {
-        state.grid[i][j] = letters[j];
-      }
-    }
-    state.currentRow = words.length;
-    updateGrid();
-  } catch (e) {
-    console.error("Error loading saved game:", e);
-  }
-}
-
-function reColor() {
-  try {
-    const coloring = localStorage.getItem('coloring');
-    if (!coloring) return;
-    
-    const rcolors = coloring.split(" ");
-
-    for(let i = 0; i < rcolors.length; i++) {
-      if (!rcolors[i]) continue;
-      
-      const lcolors = rcolors[i].split("");
-
-      for(let j = 0; j < lcolors.length; j++) {
-        const box = document.getElementById(`box${i}${j}`);
-        if (!box) continue;
-        
-        if (lcolors[j] === '0') {
-          box.classList.add('right');
-        } else if (lcolors[j] === '1') {
-          box.classList.add('wrong');
-        } else {
-          box.classList.add('empty');
-        }
-      }
-    }
-  } catch (e) {
-    console.error("Error recoloring saved game:", e);
-  }
-}
-
-// Event setup for keyboard
-document.addEventListener('DOMContentLoaded', function() {
-  //handles the keyboard buttons - letters
-  const buttons = document.querySelectorAll('.btn');
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      var guy = "" + btn.innerHTML;
-      addLetter(guy.toLowerCase());
-      updateGrid();
-    });
-  });
-
-  //handles the keyboard buttons - Enter button
-  const enter = document.querySelector('.Enter');
-  if (enter) {
-    enter.addEventListener('click', () => {
-      handleEnterKey();
-      updateGrid();
-    });
-  }
-
-  //handles the keyboard buttons - delete button
-  const Delete = document.querySelector('.delete');
-  if (Delete) {
-    Delete.addEventListener('click', () => {
-      removeLetter();
-      updateGrid();
-    });
-  }
-
-  // Launch the game
-  startup();
-});
-
+  const inputs = getLocalStorageItem('inputs');
+  if (!inputs) return;
+  
+  const words = inputs.split(" ");
+  
+  for (
