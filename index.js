@@ -371,3 +371,4 @@ document.addEventListener('DOMContentLoaded', function() {
   // Launch the game
   startup();
 });
+
